@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "immune"
+version = "0.4.0"
+description = "Bulk and single-cell immune receptor repertoire analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "Tim Holy"}]
+dependencies = [
+  "numpy>=1.24",
+  "pandas>=2.0",
+  "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+bulk = ["scikit-bio>=0.7"]
+differential = ["pydeseq2>=0.5"]
+singlecell = ["anndata>=0.10", "scanpy>=1.10", "mudata>=0.3", "scirpy>=0.19"]
+advanced = ["scvi-tools>=1.2", "pertpy>=1.0", "decoupler>=2.0"]
+all = [
+  "scikit-bio>=0.7",
+  "anndata>=0.10",
+  "scanpy>=1.10",
+  "mudata>=0.3",
+  "scirpy>=0.19",
+  "scvi-tools>=1.2",
+  "pertpy>=1.0",
+  "decoupler>=2.0",
+  "pydeseq2>=0.5",
+  "matplotlib>=3.8",
+  "seaborn>=0.13",
+]
+plot = ["matplotlib>=3.8", "seaborn>=0.13"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
