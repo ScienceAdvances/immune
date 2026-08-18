@@ -9,6 +9,9 @@ Version `0.4.0` uses a thin-orchestration design and a Scanpy-style public API:
 `io` reads data, `pp` preprocesses it, `tl` runs analyses and `pl` plots
 results. The recommended import is `import immune as iu`.
 
+The full Sphinx website lives in [`docs/`](docs/index.md) and includes
+installation, data-model, bulk, single-cell, integration and API documentation.
+
 ## What works now
 
 - MiXCR `exportClones` tables with common default or explicitly exported
@@ -288,6 +291,16 @@ SciPy are installed as package dependencies:
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
+
+## Documentation website
+
+```bash
+python -m pip install -e '.[docs]'
+python -m sphinx -W --keep-going -b html docs docs/_build/html
+```
+
+The website uses Sphinx 9.1 and PyData Sphinx Theme 0.20, with the actual build
+versions displayed in the footer.
 
 ## Planned next steps
 

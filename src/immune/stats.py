@@ -207,6 +207,11 @@ def test_longitudinal_expansion(
     )
 
 
+# This is a public statistical test, not a pytest test case.  The marker keeps
+# pytest from collecting it when users import the function into a test module.
+test_longitudinal_expansion.__test__ = False
+
+
 def repertoire_metrics(abundance: pd.DataFrame) -> pd.DataFrame:
     """Compute richness, Shannon entropy, Simpson diversity and clonality."""
 

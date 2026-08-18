@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" role="img" aria-labelledby="title desc">
+  <title id="title">immune</title>
+  <desc id="desc">immune scientific Python package logo</desc>
+  <g fill="none" stroke="#6f7f9a" stroke-width="8" stroke-linecap="round">
+    <path d="M66 22v33c0 14-9 24-23 31"/>
+    <path d="M66 55c0 14 9 24 23 31"/>
+    <path d="M43 86v16M89 86v16"/>
+  </g>
+  <text x="112" y="84" font-family="Inter,Arial,sans-serif" font-size="72" font-weight="650" letter-spacing="5" fill="#172033">immu</text>
+  <text x="346" y="84" font-family="Inter,Arial,sans-serif" font-size="72" font-weight="650" letter-spacing="5" fill="#22a98b">ne</text>
+</svg>

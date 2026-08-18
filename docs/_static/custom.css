@@ -1,0 +1,150 @@
+:root {
+  --immune-ink: #172033;
+  --immune-muted: #5d6b82;
+  --immune-teal: #22a98b;
+  --immune-teal-dark: #13745f;
+  --immune-violet: #7054c7;
+  --pst-color-primary: var(--immune-teal-dark);
+  --pst-color-link: var(--immune-teal-dark);
+}
+
+html[data-theme="dark"] {
+  --pst-color-primary: #55d7ba;
+  --pst-color-link: #70dfc5;
+}
+
+.navbar-brand img {
+  height: 2.35rem;
+  width: auto;
+}
+
+.bd-article > section#immune > h1:first-child {
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 0;
+}
+
+.immune-hero {
+  margin: 1.5rem auto 3rem;
+  max-width: 980px;
+  text-align: center;
+}
+
+.immune-hero-logo {
+  display: block;
+  margin: 0 auto 1.4rem;
+  max-width: min(520px, 86vw);
+  width: 100%;
+}
+
+.immune-kicker {
+  color: var(--immune-teal-dark);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.65rem;
+  text-transform: uppercase;
+}
+
+.immune-hero h1 {
+  color: var(--immune-ink);
+  font-size: clamp(2rem, 4vw, 3.45rem);
+  letter-spacing: -0.035em;
+  line-height: 1.07;
+  margin: 0 auto 1.2rem;
+  max-width: 960px;
+}
+
+html[data-theme="dark"] .immune-hero h1 {
+  color: #f1f4fa;
+}
+
+.immune-lead {
+  color: var(--immune-muted);
+  font-size: 1.16rem;
+  line-height: 1.65;
+  margin: 0 auto;
+  max-width: 790px;
+}
+
+html[data-theme="dark"] .immune-lead {
+  color: #b7c1d2;
+}
+
+.immune-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-top: 1.8rem;
+}
+
+.immune-button {
+  border: 1px solid var(--immune-teal-dark);
+  border-radius: 0.42rem;
+  font-weight: 650;
+  padding: 0.68rem 1.15rem;
+  text-decoration: none;
+}
+
+.immune-button.primary {
+  background: var(--immune-teal-dark);
+  color: white;
+}
+
+.immune-button.secondary {
+  color: var(--immune-teal-dark);
+}
+
+.immune-card {
+  border-top: 4px solid var(--immune-teal);
+  box-shadow: 0 0.22rem 0.75rem rgb(23 32 51 / 8%);
+  height: 100%;
+}
+
+.immune-feature-grid .sd-card:nth-child(2) {
+  border-top-color: var(--immune-violet);
+}
+
+.immune-feature-grid .sd-card:nth-child(3) {
+  border-top-color: #db8b35;
+}
+
+.sd-card-title {
+  color: var(--immune-ink);
+  font-weight: 700;
+}
+
+html[data-theme="dark"] .sd-card-title {
+  color: #f1f4fa;
+}
+
+.bd-main .bd-content .bd-article-container {
+  max-width: 940px;
+}
+
+.bd-page-width {
+  max-width: 1500px;
+}
+
+.footer-items__start,
+.footer-items__end {
+  flex-direction: row;
+  gap: 0.35rem;
+}
+
+code.literal {
+  border-radius: 0.2rem;
+}
+
+@media (max-width: 767px) {
+  .immune-hero {
+    margin-top: 0.5rem;
+  }
+
+  .immune-kicker {
+    font-size: 0.72rem;
+  }
+}
