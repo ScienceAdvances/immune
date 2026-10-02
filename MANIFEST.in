@@ -1,0 +1,4 @@
+include DESIGN.md
+include DESIGN.zh-CN.md
+recursive-include docs *.md *.rst *.py *.css *.svg
+recursive-include examples *.py

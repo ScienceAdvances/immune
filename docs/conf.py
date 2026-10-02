@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import immune
 
 project = "immune"
-author = "immune contributors"
+author = "Tim Holy"
 copyright = "2026, immune contributors"
 version = release = immune.__version__
 
@@ -85,6 +85,13 @@ html_theme_options = {
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
     "navbar_persistent": ["search-button"],
+    "icon_links": [
+        {
+            "name": "GitHub repository",
+            "url": "https://github.com/ScienceAdvances/immune",
+            "icon": "fa-brands fa-github",
+        }
+    ],
     "secondary_sidebar_items": ["page-toc", "sourcelink"],
     "footer_start": ["copyright", "sphinx-version"],
     "footer_end": ["theme-version"],

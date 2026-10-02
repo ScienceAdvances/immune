@@ -6,6 +6,7 @@ from typing import Any
 
 import pandas as pd
 
+from .joint_plotting import clone_embedding, phenotype_composition, phenotype_flow
 from .plotting import (
     plot_bulk_diversity,
     plot_clonality,
@@ -94,6 +95,7 @@ __all__ = [
     "bulk_spectratype",
     "clonal_expansion",
     "clonality",
+    "clone_embedding",
     "clone_trajectories",
     "clonotype_imbalance",
     "clonotype_modularity",
@@ -102,6 +104,8 @@ __all__ = [
     "embedding",
     "group_abundance",
     "hill_diversity",
+    "phenotype_composition",
+    "phenotype_flow",
     "plot_bulk_diversity",
     "plot_clonality",
     "plot_clone_trajectories",

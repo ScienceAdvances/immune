@@ -16,6 +16,74 @@ from .schema import (
 )
 
 
+def read_10x_vdj(path, *, library_id, sample_id, donor_id=None, **kwargs):
+    """Read native 10x CSV/JSON VDJ records into Scirpy AnnData.
+
+    Raw records are retained. Chain selection and productive-chain filtering
+    are explicit preprocessing steps. Existing read_10x still returns a table.
+    """
+    from ._optional import require_dependency
+
+    ir = require_dependency("scirpy", extra="singlecell", feature="10x VDJ reading")
+    path = Path(path)
+    if path.is_dir():
+        candidates = [
+            path / name
+            for name in (
+                "all_contig_annotations.json",
+                "all_contig_annotations.csv",
+                "filtered_contig_annotations.csv",
+            )
+        ]
+        candidates += [path / "outs" / item.name for item in candidates]
+        path = next((item for item in candidates if item.is_file()), path)
+    kwargs.setdefault("filtered", False)
+    adata = ir.io.read_10x_vdj(path, **kwargs)
+    return _set_cell_ids(adata, library_id=library_id, sample_id=sample_id, donor_id=donor_id)
+
+
+def read_airr_anndata(path, *, library_id, sample_id, donor_id=None, **kwargs):
+    from ._optional import require_dependency
+
+    ir = require_dependency("scirpy", extra="singlecell", feature="AIRR reading")
+    adata = ir.io.read_airr(path, **kwargs)
+    return _set_cell_ids(adata, library_id=library_id, sample_id=sample_id, donor_id=donor_id)
+
+
+def _set_cell_ids(adata, *, library_id, sample_id, donor_id=None):
+    if not library_id or ":" in str(library_id) or not adata.obs_names.is_unique:
+        raise ValueError("Supply a nonempty library_id without ':' and unique cell barcodes")
+    adata.obs["barcode"] = adata.obs_names.astype(str)
+    adata.obs["library_id"] = str(library_id)
+    adata.obs["sample_id"] = str(sample_id)
+    if donor_id is not None:
+        adata.obs["donor_id"] = str(donor_id)
+    adata.obs_names = pd.Index(str(library_id) + ":" + adata.obs["barcode"].astype(str))
+    return adata
+
+
+def read_h5mu(path, **kwargs):
+    from ._optional import require_dependency
+
+    md = require_dependency("mudata", extra="singlecell", feature="MuData reading")
+    return md.read_h5mu(path, **kwargs)
+
+
+def read_h5ad(path, **kwargs):
+    from ._optional import require_dependency
+
+    ad = require_dependency("anndata", extra="singlecell", feature="AnnData reading")
+    return ad.read_h5ad(path, **kwargs)
+
+
+def write(data, path, **kwargs):
+    path = Path(path)
+    suffix = ".h5mu" if hasattr(data, "mod") else ".h5ad"
+    if path.suffix != suffix:
+        raise ValueError(f"Use {suffix} for this data object")
+    data.write(path, **kwargs)
+
+
 def _read_table(path: str | Path, *, sep: str | None = None) -> pd.DataFrame:
     path = Path(path)
     if not path.exists():
@@ -233,7 +301,9 @@ def read_10x(
         try:
             path = next(candidate for candidate in candidates if candidate.exists())
         except StopIteration as exc:
-            raise FileNotFoundError(f"No supported Cell Ranger V(D)J output found in {path}") from exc
+            raise FileNotFoundError(
+                f"No supported Cell Ranger V(D)J output found in {path}"
+            ) from exc
 
     if path.name == "airr_rearrangement.tsv" or path.suffix.lower() == ".tsv":
         return read_airr(
@@ -321,9 +391,11 @@ def read_mixcr(
     if result["productive"].isna().all():
         aa = result["junction_aa"].astype("string")
         result["productive"] = aa.map(
-            lambda value: pd.NA
-            if pd.isna(value)
-            else not bool(pd.Series([value]).str.contains(r"\*|_", regex=True).iloc[0])
+            lambda value: (
+                pd.NA
+                if pd.isna(value)
+                else not bool(pd.Series([value]).str.contains(r"\*|_", regex=True).iloc[0])
+            )
         )
 
     result = canonicalize(result)

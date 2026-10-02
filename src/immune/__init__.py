@@ -1,6 +1,6 @@
 """immune: Scanpy-style bulk and single-cell immune repertoire analysis."""
 
-from . import io, pl, pp, tl
+from . import datasets, get, io, pl, pp, tl
 from ._optional import backend_status
 from .advanced import pseudobulk, run_milo, run_scvi, scanpy_standard_workflow
 from .bulk import (
@@ -66,10 +66,12 @@ __all__ = [
     "clonality_rank",
     "clone_abundance",
     "coverage_diversity",
+    "datasets",
     "differential_clonotype_abundance",
     "downsample_repertoire",
     "filter_repertoire",
     "gene_usage",
+    "get",
     "hill_diversity",
     "io",
     "link_bulk_to_single_cell",
@@ -111,4 +113,4 @@ __all__ = [
     "to_scirpy",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

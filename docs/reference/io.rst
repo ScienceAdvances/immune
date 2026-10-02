@@ -12,3 +12,8 @@ canonical chain table.
    read_mixcr
    read_10x
    read_airr
+   read_10x_vdj
+   read_airr_anndata
+   read_h5ad
+   read_h5mu
+   write

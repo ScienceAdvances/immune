@@ -38,3 +38,6 @@ Single-cell plots
    embedding
    group_abundance
    vdj_usage
+   clone_embedding
+   phenotype_composition
+   phenotype_flow

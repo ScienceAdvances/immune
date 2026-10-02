@@ -16,12 +16,7 @@ def _cell_clone_table(
     assigned = assigned.dropna(subset=["cell_id", "clone_id"]).copy()
     if assigned.empty:
         return pd.DataFrame(columns=["sample_id", "cell_id", "clone_id"])
-    score = (
-        assigned["umi_count"]
-        .fillna(assigned["read_count"])
-        .fillna(0)
-        .astype(float)
-    )
+    score = assigned["umi_count"].fillna(assigned["read_count"]).fillna(0).astype(float)
     assigned["_support"] = score
     # Dual beta chains are retained in the chain table. For cell annotation,
     # select the best-supported chain and leave dual-chain modeling to a later
@@ -32,7 +27,7 @@ def _cell_clone_table(
     return assigned[["sample_id", "cell_id", "clone_id"]]
 
 
-def phenotype_composition(
+def _phenotype_composition_table(
     single_cell_chains: pd.DataFrame,
     cell_metadata: pd.DataFrame,
     *,
@@ -88,9 +83,9 @@ def phenotype_composition(
         .reset_index()
         .rename(columns={phenotype_col: "phenotype"})
     )
-    grouped["clone_cell_count"] = grouped.groupby(
-        ["sample_id", "clone_id"], observed=True
-    )["cell_count"].transform("sum")
+    grouped["clone_cell_count"] = grouped.groupby(["sample_id", "clone_id"], observed=True)[
+        "cell_count"
+    ].transform("sum")
     grouped["sample_cell_count"] = grouped.groupby("sample_id", observed=True)[
         "cell_count"
     ].transform("sum")
@@ -102,7 +97,7 @@ def phenotype_composition(
     ).reset_index(drop=True)
 
 
-def phenotypic_flux(
+def _phenotypic_flux_table(
     composition: pd.DataFrame,
     *,
     from_sample: str,
@@ -158,7 +153,7 @@ def phenotypic_flux(
     return result.sort_values("phenotypic_flux", ascending=False, ignore_index=True)
 
 
-def phenotype_flow(
+def _phenotype_flow_table(
     composition: pd.DataFrame,
     *,
     from_sample: str,
@@ -206,3 +201,130 @@ def phenotype_flow(
                     }
                 )
     return pd.DataFrame.from_records(rows)
+
+
+def phenotype_composition(
+    data,
+    cell_metadata=None,
+    *,
+    phenotype_col="cell_state",
+    definition=None,
+    cell_id_col="cell_id",
+    sample_col="sample_id",
+    clone_key="clone_id",
+    airr_mod="airr",
+    gex_mod="gex",
+    key_added="phenotype_composition",
+):
+    """Count clone/state composition from native objects or legacy chain tables.
+
+    For native objects, clonotypes come from the existing receptor annotation.
+    The denominator is cells with both a clone and the requested state label.
+    Original receptor records and RNA expression matrices are not modified.
+    """
+    if isinstance(data, pd.DataFrame):
+        if cell_metadata is None:
+            raise ValueError("cell_metadata is required for chain-table input")
+        return _phenotype_composition_table(
+            data,
+            cell_metadata,
+            phenotype_col=phenotype_col,
+            definition=definition,
+            cell_id_col=cell_id_col,
+            sample_col=sample_col,
+        )
+    from ._objects import cell_obs, record
+
+    cells = cell_obs(data, airr_mod=airr_mod, gex_mod=gex_mod, clone_key=clone_key)
+    if definition is not None:
+        raise ValueError("Define native clonotypes first; definition only applies to table input")
+    columns = [sample_col, clone_key, phenotype_col]
+    valid = cells.dropna(subset=columns)
+    valid = valid[~valid[clone_key].astype(str).isin(["None", "nan", "NaN", ""])]
+    result = valid.groupby(columns, observed=True).size().rename("cell_count").reset_index()
+    result = result.rename(
+        columns={sample_col: "sample_id", clone_key: "clone_id", phenotype_col: "phenotype"}
+    )
+    result["clone_cell_count"] = result.groupby(["sample_id", "clone_id"], observed=True)[
+        "cell_count"
+    ].transform("sum")
+    result["sample_cell_count"] = result.groupby("sample_id", observed=True)[
+        "cell_count"
+    ].transform("sum")
+    result["within_clone_fraction"] = result["cell_count"] / result["clone_cell_count"]
+    result["sample_fraction"] = result["cell_count"] / result["sample_cell_count"]
+    record(
+        data,
+        key_added,
+        result,
+        params={
+            "phenotype_col": phenotype_col,
+            "clone_key": clone_key,
+            "denominator": "clone_and_state_annotated_cells",
+            "n_input_cells": len(cells),
+            "n_used_cells": len(valid),
+        },
+    )
+    return result
+
+
+def phenotypic_flux(
+    data,
+    *,
+    from_sample,
+    to_sample,
+    min_cells=1,
+    composition_key="phenotype_composition",
+    key_added="phenotypic_flux",
+):
+    from ._objects import record
+    from .get import result
+
+    composition = data if isinstance(data, pd.DataFrame) else result(data, composition_key)
+    table = _phenotypic_flux_table(
+        composition, from_sample=from_sample, to_sample=to_sample, min_cells=min_cells
+    )
+    if not isinstance(data, pd.DataFrame):
+        record(
+            data,
+            key_added,
+            table,
+            params={
+                "from_sample": from_sample,
+                "to_sample": to_sample,
+                "min_cells": min_cells,
+                "metric": "L1",
+            },
+        )
+    return table
+
+
+def phenotype_flow(
+    data,
+    *,
+    from_sample,
+    to_sample,
+    clones=None,
+    composition_key="phenotype_composition",
+    key_added="phenotype_flow",
+):
+    """Independent-approximation flow of clone state distributions, not lineage."""
+    from ._objects import record
+    from .get import result
+
+    composition = data if isinstance(data, pd.DataFrame) else result(data, composition_key)
+    table = _phenotype_flow_table(
+        composition, from_sample=from_sample, to_sample=to_sample, clones=clones
+    )
+    if not isinstance(data, pd.DataFrame):
+        record(
+            data,
+            key_added,
+            table,
+            params={
+                "from_sample": from_sample,
+                "to_sample": to_sample,
+                "model": "independent_state_distributions",
+            },
+        )
+    return table

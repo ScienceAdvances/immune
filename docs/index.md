@@ -16,6 +16,7 @@ html_theme.sidebar_primary.remove: true
   <div class="immune-hero-actions">
     <a class="immune-button primary" href="getting-started/quickstart.html">Get started</a>
     <a class="immune-button secondary" href="reference/index.html">API reference</a>
+    <a class="immune-button secondary" href="https://github.com/ScienceAdvances/immune">GitHub</a>
   </div>
 </div>
 
@@ -102,10 +103,9 @@ python -m pip install immune
 python -m pip install 'immune[bulk,singlecell,plot]'
 ```
 
-Use Python 3.10 or newer for the package. Building this documentation website
-with Sphinx 9 and PyData Sphinx Theme 0.20 requires Python 3.12 or newer.
+Use Python 3.10 or newer.
 
-{bdg-primary}`Version 0.4.0` {bdg-secondary}`MIT` {bdg-success}`Python`
+{bdg-primary}`Version 0.5.0` {bdg-secondary}`MIT` {bdg-success}`Python`
 :::
 
 :::{grid-item}

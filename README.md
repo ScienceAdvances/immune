@@ -5,12 +5,25 @@ receptor sequencing and paired single-cell RNA/TCR data. It starts from the
 core ideas in CloneTrack and PhenoTrack, but uses current MiXCR, Cell Ranger
 and AIRR-style inputs and keeps clone-definition rules explicit.
 
-Version `0.4.0` uses a thin-orchestration design and a Scanpy-style public API:
+Version `0.5.0` uses native AnnData/MuData and a Scanpy-style public API:
 `io` reads data, `pp` preprocesses it, `tl` runs analyses and `pl` plots
 results. The recommended import is `import immune as iu`.
 
 The full Sphinx website lives in [`docs/`](docs/index.md) and includes
 installation, data-model, bulk, single-cell, integration and API documentation.
+
+The RNA/VDJ architecture, package boundaries, data contract, interfaces and
+statistical assumptions are documented in [DESIGN.md](DESIGN.md).
+
+Chinese version: [DESIGN.zh-CN.md](DESIGN.zh-CN.md).
+Use cellscope for RNA analysis and immune for VDJ/clones; see
+[the joint workflow](docs/user-guide/rna-vdj.md) and
+[the executable example](examples/rna_vdj_workflow.py).
+
+`iu.get` extracts tables and AIRR records; `iu.datasets` supplies deterministic
+paired-donor RNA/VDJ/bulk data. New native tools cover clone/state composition,
+phenotype diversity/flux/flow, donor-aware tracking and expansion, and explicit
+bulk associations with paired-clone ambiguity preserved.
 
 ## What works now
 
@@ -61,12 +74,16 @@ python -m pip install -e '.[bulk]'
 python -m pip install -e '.[differential]'
 python -m pip install -e '.[singlecell,plot]'
 python -m pip install -e '.[advanced]'
+python -m pip install -e '.[joint]'
 # or everything
 python -m pip install -e '.[all]'
 ```
 
 The normal analysis path is Python-only. `immune.backend_status()` reports
 which optional backends are visible.
+
+The `joint` extra requires cellscope >=1.2.0. During development, install its
+local checkout first. Publish cellscope before releasing immune with this extra.
 
 The PyPI distribution and import namespace are both named `immune`:
 

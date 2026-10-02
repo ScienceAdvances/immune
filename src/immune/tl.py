@@ -11,6 +11,16 @@ from .bulk import (
     skbio_beta_diversity,
     spectratype,
 )
+from .joint import (
+    annotate_bulk_matches,
+    clonal_expansion,
+    clone_expression,
+    clone_pseudobulk,
+    clone_state_enrichment,
+    clone_summary,
+    match_bulk,
+    phenotype_diversity,
+)
 from .phenotype import phenotype_composition, phenotype_flow, phenotypic_flux
 from .repertoire import (
     annotate_clonality_proportion,
@@ -29,6 +39,7 @@ from .singlecell import (
     scirpy_summary,
 )
 from .stats import repertoire_metrics, test_longitudinal_expansion, timecourse
+from .tracking import longitudinal_expansion, track_clones
 
 # Concise Scanpy-style names. Explicit backend names remain available when
 # analysis scripts need to make provenance visible.
@@ -36,7 +47,6 @@ alpha_diversity = skbio_alpha_diversity
 beta_diversity = skbio_beta_diversity
 differential_abundance = differential_clonotype_abundance
 dxx = coverage_diversity
-longitudinal_expansion = test_longitudinal_expansion
 rarefaction = rarefaction_curve
 define_clonotypes = scirpy_define_clonotypes
 repertoire_summary = scirpy_summary
@@ -47,12 +57,18 @@ milo = run_milo
 
 __all__ = [
     "alpha_diversity",
+    "annotate_bulk_matches",
     "annotate_clonality_proportion",
     "annotate_clonality_rank",
     "beta_diversity",
     "bulk_summary",
+    "clonal_expansion",
     "clonality_proportion",
     "clonality_rank",
+    "clone_expression",
+    "clone_pseudobulk",
+    "clone_state_enrichment",
+    "clone_summary",
     "coverage_diversity",
     "define_clonotypes",
     "differential_abundance",
@@ -61,8 +77,10 @@ __all__ = [
     "gene_usage",
     "hill_diversity",
     "longitudinal_expansion",
+    "match_bulk",
     "milo",
     "phenotype_composition",
+    "phenotype_diversity",
     "phenotype_flow",
     "phenotypic_flux",
     "pseudobulk",
@@ -88,4 +106,5 @@ __all__ = [
     "spectratype",
     "test_longitudinal_expansion",
     "timecourse",
+    "track_clones",
 ]

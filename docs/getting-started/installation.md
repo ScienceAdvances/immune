@@ -13,7 +13,7 @@ python -m pip install immune
 For local development:
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/ScienceAdvances/immune.git
 cd immune
 python -m pip install -e .
 ```
@@ -53,15 +53,3 @@ iu.backend_status()
 
 Optional packages are imported only when their functions are called. A missing
 backend therefore does not prevent the base package from importing.
-
-## Build the documentation website
-
-The documentation toolchain requires Python 3.12 or newer. The current website
-targets Sphinx 9.1 and PyData Sphinx Theme 0.20.
-
-```bash
-python -m pip install -e '.[docs]'
-python -m sphinx -W --keep-going -b html docs docs/_build/html
-```
-
-Open `docs/_build/html/index.html` in a browser to inspect the local website.

@@ -21,6 +21,8 @@ control.
    pp
    tl
    pl
+   get
+   datasets
    data-model
    project
    backends

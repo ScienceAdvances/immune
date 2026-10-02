@@ -7,6 +7,7 @@ current roadmap.
 :maxdepth: 1
 
 contributing
+design
 building-docs
 roadmap
 ```
