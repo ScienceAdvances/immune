@@ -81,7 +81,14 @@ def write(data, path, **kwargs):
     suffix = ".h5mu" if hasattr(data, "mod") else ".h5ad"
     if path.suffix != suffix:
         raise ValueError(f"Use {suffix} for this data object")
-    data.write(path, **kwargs)
+    from ._optional import require_dependency
+
+    ad = require_dependency("anndata", extra="singlecell", feature="Native object writing")
+    if hasattr(getattr(ad, "settings", None), "allow_write_nullable_strings"):
+        with ad.settings.override(allow_write_nullable_strings=True):
+            data.write(path, **kwargs)
+    else:
+        data.write(path, **kwargs)
 
 
 def _read_table(path: str | Path, *, sep: str | None = None) -> pd.DataFrame:
@@ -164,6 +171,9 @@ def read_airr(
     result["umi_count"] = _series(raw, ["duplicate_count", "umi_count", "umis"])
     result["cell_count"] = _series(raw, ["cell_count"])
     result["frequency"] = _series(raw, ["frequency", "clone_fraction"])
+    for field in raw.columns:
+        if field not in result:
+            result[field] = raw[field]
     if "is_cell" in raw:
         result["is_cell"] = raw["is_cell"]
 

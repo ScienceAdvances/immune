@@ -1,4 +1,4 @@
-"""Clone-aware RNA/VDJ summaries, bulk matching, and expression integration."""
+"""VDJ clone summaries, phenotype associations and bulk repertoire matching."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import pandas as pd
 from scipy.stats import entropy, fisher_exact
 
 from ._objects import airr_data, cell_obs, record, sync_obs
-from ._optional import require_dependency
 from .clonotypes import CloneDefinition, add_clonotype_ids, clone_abundance
 from .stats import adjust_pvalues
 
@@ -261,80 +260,3 @@ def annotate_bulk_matches(data, *, result_key="bulk_matches", airr_mod="airr", p
         adata.obs[f"{prefix}_{col.removeprefix('bulk_')}"] = indexed[col].reindex(adata.obs_names)
     sync_obs(data, airr_mod)
     return data
-
-
-def clone_pseudobulk(
-    data,
-    *,
-    groupby="clonal_expansion",
-    sample_col="sample_id",
-    layer="counts",
-    airr_mod="airr",
-    gex_mod="gex",
-    metadata_cols=(),
-    **kwargs,
-):
-    """Delegate count aggregation to cellscope using receptor-defined groups."""
-    cs = require_dependency("cellscope", extra="joint", feature="Clone-aware expression analysis")
-    if not hasattr(data, "mod"):
-        raise TypeError("Clone-aware pseudobulk requires MuData with gex and airr")
-    airr = airr_data(data, airr_mod)
-    gex = data.mod[gex_mod]
-    labels = airr.obs[groupby].reindex(gex.obs_names)
-    subset = gex[labels.notna()].copy()
-    subset.obs[groupby] = labels.reindex(subset.obs_names)
-    return cs.tl.pseudobulk(
-        subset,
-        sample_col=sample_col,
-        groups_col=groupby,
-        layer=layer,
-        metadata_cols=metadata_cols,
-        **kwargs,
-    )
-
-
-def clone_expression(
-    data,
-    *,
-    design,
-    contrast,
-    method="pydeseq2",
-    groupby="clonal_expansion",
-    metadata_cols=(),
-    min_cells=10,
-    pseudobulk_kwargs=None,
-    de_kwargs=None,
-    key_added="clone_expression",
-):
-    """Compare conditions within receptor-defined groups using sample-level DE."""
-    cs = require_dependency(
-        "cellscope", extra="joint", feature="Clone-aware differential expression"
-    )
-    pdata = clone_pseudobulk(
-        data,
-        groupby=groupby,
-        metadata_cols=metadata_cols,
-        min_cells=min_cells,
-        **(pseudobulk_kwargs or {}),
-    )
-    options = dict(de_kwargs or {})
-    options.setdefault("method", method)
-    options.setdefault("sample_col", (pseudobulk_kwargs or {}).get("sample_col", "sample_id"))
-    table, models = cs.tl.differential_expression(
-        pdata, design=design, contrast=contrast, groups_col=groupby, **options
-    )
-    selected_method = str(table["method"].iloc[0])
-    record(
-        data,
-        key_added,
-        table,
-        params={
-            "design": design,
-            "contrast": list(contrast),
-            "groupby": groupby,
-            "replicate_unit": "sample",
-            "method": selected_method,
-        },
-        backend="edgepython" if selected_method.startswith("edgepython") else selected_method,
-    )
-    return table, pdata, models

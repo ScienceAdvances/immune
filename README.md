@@ -51,8 +51,6 @@ bulk associations with paired-clone ambiguity preserved.
   paired/blocked designs expressed as formulas.
 - Scirpy AIRR conversion, chain QC, clonotyping, expansion, alpha diversity,
   repertoire overlap, spectratype and its complete repertoire plotting layer.
-- A conventional Scanpy workflow plus thin adapters for scvi-tools, Pertpy
-  Milo differential abundance and decoupler pseudobulk aggregation.
 - The original lightweight richness, Shannon, Simpson and clonality functions
   remain available for compatibility and dependency-light checks.
 - Clone-aware phenotype composition, phenotypic flux and PhenoTrack-style
@@ -73,17 +71,17 @@ Install only the analysis families required by a project:
 python -m pip install -e '.[bulk]'
 python -m pip install -e '.[differential]'
 python -m pip install -e '.[singlecell,plot]'
-python -m pip install -e '.[advanced]'
-python -m pip install -e '.[joint]'
 # or everything
 python -m pip install -e '.[all]'
 ```
 
-The normal analysis path is Python-only. `immune.backend_status()` reports
-which optional backends are visible.
-
-The `joint` extra requires cellscope >=1.2.0. During development, install its
-local checkout first. Publish cellscope before releasing immune with this extra.
+The normal repertoire analysis path is Python-only. `immune.backend_status()`
+reports which optional Python backends are visible. New
+[Single-cell Best Practices interfaces](docs/user-guide/best-practices.md)
+cover receptor specificity, BCR maturation and clone graph analysis.
+RNA QC, models, expression inference and composition analysis are provided by
+cellscope. immune reads existing annotations and graphs without exposing RNA
+analysis wrappers or depending on cellscope.
 
 The PyPI distribution and import namespace are both named `immune`:
 
@@ -255,32 +253,13 @@ When a barcode appears in more than one sample, `to_scirpy()` automatically
 uses `sample_id:barcode`; otherwise the original barcode is preserved so it
 can align directly with the transcriptome object.
 
-## Transcriptome and advanced analysis
+## RNA interoperability
 
-```python
-# Optional conventional Scanpy preprocessing and embedding.
-iu.tl.scanpy_workflow(adata, layer="counts")
-
-# Batch-aware latent representation from scvi-tools.
-model = iu.tl.scvi(adata, layer="counts", batch_key="sample_id")
-
-# Neighborhood differential abundance through Pertpy Milo.
-mdata, milo = iu.tl.milo(
-    adata,
-    sample_col="sample_id",
-    design="~ condition",
-    neighbors_kwargs={"use_rep": "X_scVI"},
-)
-milo.plot_nhood_graph(mdata, alpha=0.1)
-
-# Sample-by-cell-type count matrices through decoupler.
-pb = iu.tl.pseudobulk(
-    adata,
-    sample_col="sample_id",
-    groups_col="cell_type",
-    layer="counts",
-)
-```
+Use cellscope directly for RNA analysis, then pass the existing annotations,
+embeddings and neighbor graphs to immune for receptor-focused analysis.
+`pp.merge_with_transcriptome` and clone/phenotype summaries remain available.
+The [RNA and VDJ guide](docs/user-guide/rna-vdj.md) demonstrates shared objects
+without adding expression algorithms to immune.
 
 ## Important assumptions
 

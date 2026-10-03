@@ -75,11 +75,9 @@ Native RNA/VDJ joint analysis
    clonal_expansion
    match_bulk
    annotate_bulk_matches
-   clone_pseudobulk
-   clone_expression
 
-Single-cell and transcriptome backends
---------------------------------------
+Single-cell receptor backends
+-----------------------------
 
 .. autosummary::
    :toctree: generated
@@ -87,7 +85,15 @@ Single-cell and transcriptome backends
    scirpy_define_clonotypes
    scirpy_summary
    scirpy_repertoire
-   scanpy_workflow
-   scvi
-   milo
-   pseudobulk
+
+Best-practice receptor analysis
+-------------------------------
+
+.. autosummary::
+   :toctree: generated
+
+   receptor_query
+   bcr_clonotypes
+   mutational_load
+   clonotype_network
+   clonotype_modularity

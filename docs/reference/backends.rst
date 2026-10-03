@@ -40,11 +40,3 @@ Single-cell adapters
    :members:
    :undoc-members:
    :show-inheritance:
-
-Advanced transcriptome adapters
--------------------------------
-
-.. automodule:: immune.advanced
-   :members:
-   :undoc-members:
-   :show-inheritance:

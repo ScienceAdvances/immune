@@ -47,8 +47,13 @@ design. The toy dataset demonstrates mechanics; actual studies require
 adequate donors and sampling.
 
 ```python
-pdata = iu.tl.clone_pseudobulk(
-    mdata, min_cells=3, metadata_cols=["condition", "donor_id"]
+rna = mdata.mod["gex"]
+labels = mdata.mod["airr"].obs["clonal_expansion"].reindex(rna.obs_names)
+selected = rna[labels.notna()].copy()
+selected.obs["clonal_expansion"] = labels.reindex(selected.obs_names)
+pdata = cs.tl.pseudobulk(
+    selected, groups_col="clonal_expansion", min_cells=3,
+    metadata_cols=["condition", "donor_id"]
 )
 de, models = cs.tl.differential_expression(
     pdata, groups_col="clonal_expansion", design="~ donor_id + condition",

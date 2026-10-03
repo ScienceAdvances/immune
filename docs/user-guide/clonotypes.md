@@ -46,8 +46,8 @@ goal.
 - `(\"TRB\",)` is a practical default for many TCR beta studies.
 - `(\"TRA\", \"TRB\")` treats each chain sequence as a key component but does
   not by itself reconstruct paired receptors from independent bulk chains.
-- BCR loci are accepted in the canonical schema, but germline reconstruction,
-  SHM and lineage inference are not currently implemented.
+- BCR clustering and mutation burden use Scirpy adapters. Germline
+  reconstruction and lineage inference remain upstream tasks.
 
 ## Assign and aggregate
 
@@ -68,6 +68,14 @@ abundance = iu.pp.clone_abundance(
 ```
 
 Inspect `count_unit` in the returned table before downstream comparisons.
+
+For bulk data, repeated chain rows with the same `source_clonotype_id` count
+once per resulting clone; distinct source clonotypes are summed. If that ID is
+missing, `sequence_id` identifies a source record. Source IDs are scoped by
+sample and `source`. Conflicting counts within the same source record raise an
+error. Rows without either ID are treated as independent abundance records;
+remove duplicated anonymous input rows before aggregation. Single-cell
+abundances still count unique cells.
 
 ## Cross-platform links
 

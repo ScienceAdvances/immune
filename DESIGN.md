@@ -19,14 +19,14 @@ features. It has no VDJtools command-line interoperability namespace.
 cellscope owns RNA QC, normalization, embeddings, clustering, annotation,
 functional scoring, pseudobulk, and expression inference. immune reads
 their results from native objects and constructs receptor-defined groups.
-The optional `joint` extra enables cellscope expression integration.
-cellscope does not depend on immune, so there is no circular dependency.
+The application calls cellscope directly for expression analysis. Neither
+package depends on the other; native objects share annotations and graphs.
 
 Scirpy owns mature AIRR reading, chain indexing/QC, exact clonotypes,
 receptor similarity clustering, and receptor visualization. immune calls
 its public methods rather than reimplementing the underlying algorithms.
-Existing generic RNA adapters in `immune.advanced` remain compatibility
-interfaces; new analysis should use cellscope for those functions.
+Generic RNA adapters and the expression R bridge have been removed from immune.
+VDJ interfaces consume existing RNA annotations for clone interpretation.
 
 ## Data model
 
@@ -130,23 +130,14 @@ iu.datasets # Deterministic paired-donor examples
 | `tl.longitudinal_expansion(data, sample_metadata=...)` | Donor-specific baseline/follow-up tests, time-selection correction and global BH |
 | `tl.match_bulk(data, bulk_chains, sample_pairs=..., definition=...)` | Cell/full-clone/single-locus/bulk association table, units and ambiguity |
 | `tl.annotate_bulk_matches(data)` | Per-cell bulk annotations for a uniquely selected comparison |
-| `tl.clone_pseudobulk(data, groupby='clonal_expansion', ...)` | cellscope sample-level RNA aggregation for receptor-defined groups |
-| `tl.clone_expression(data, method=..., design=..., contrast=..., ...)` | Condition DE within receptor groups; cellscope PyDESeq2, pylimma or edgePython; table, pseudobulk, models |
 
 Native phenotype outputs are stored in `data.uns['immune'][key]['table']`.
 `params` records the denominator and analysis settings. Existing phenotype
 table inputs and longitudinal table tests remain supported. Native helper
 defaults use `gex` and `airr`, with explicit modality parameters where needed.
 
-`tl.clone_expression` compares conditions separately within each receptor
-group. To contrast expanded versus non-expanded groups directly, extract
-`tl.clone_pseudobulk`, combine its profiles, and pass an appropriate paired
-design/contrast to `cellscope.tl.differential_expression`; these are different
-statistical questions.
-
-`method` selects the cellscope sample-level backend; `de_kwargs` configures
-its options. Install the corresponding cellscope optional dependency group.
-Backend provenance records the actual selected method, not a fixed PyDESeq2 label.
+RNA expression analysis uses cellscope directly on receptor-labeled RNA
+observations. immune contains no expression aggregation or inference wrappers.
 
 ### Bulk repertoire analysis
 
@@ -204,7 +195,7 @@ See `examples/rna_vdj_workflow.py` for an executable complete example.
 ## Dependencies, sources, and extension policy
 
 Base immune remains NumPy/Pandas/SciPy. Native receptor objects require
-`immune[singlecell]`; clone-aware RNA inference uses `immune[joint]`.
+`immune[singlecell]`; RNA inference is installed separately through cellscope.
 Plotting and other advanced backends remain optional. No commands are
 launched to VDJtools or an R repertoire package.
 

@@ -35,6 +35,7 @@ def to_scirpy(
     duplicated_barcodes = cell_chains.groupby("cell_id", observed=True)["sample_id"].nunique().gt(1)
     duplicated = set(duplicated_barcodes[duplicated_barcodes].index.astype(str))
     airr_cells = []
+    output_ids = set()
     for (sample_id, cell_id), cell_table in cell_chains.groupby(
         ["sample_id", "cell_id"], observed=True, sort=False
     ):
@@ -51,14 +52,20 @@ def to_scirpy(
         if len(library_values) > 1:
             raise ValueError("A receptor cell cannot belong to multiple libraries")
         cell_library = library_id or (str(library_values[0]) if len(library_values) else None)
-        use_composite = make_cell_ids_unique and (
-            cell_library is not None or original_cell_id in duplicated
-        )
-        scirpy_cell_id = (
-            f"{cell_library or sample_id}{separator}{original_cell_id}"
-            if use_composite
-            else original_cell_id
-        )
+        scirpy_cell_id = str(cell_id)
+        if make_cell_ids_unique:
+            if cell_library is not None:
+                prefix = f"{cell_library}{separator}"
+                scirpy_cell_id = (
+                    scirpy_cell_id
+                    if scirpy_cell_id.startswith(prefix)
+                    else prefix + original_cell_id
+                )
+            elif scirpy_cell_id in duplicated:
+                scirpy_cell_id = f"{sample_id}{separator}{scirpy_cell_id}"
+        if not scirpy_cell_id or scirpy_cell_id in output_ids:
+            raise ValueError("Final cell IDs must be unique; supply distinct library identifiers")
+        output_ids.add(scirpy_cell_id)
         cell = ir.io.AirrCell(scirpy_cell_id)
         cell["sample_id"] = str(sample_id)
         cell["original_cell_id"] = original_cell_id
@@ -73,19 +80,42 @@ def to_scirpy(
                 if len(values):
                     cell[column] = _python_value(values[0])
         for _, row in cell_table.iterrows():
-            chain = {
-                "sequence_id": _python_value(row.get("sequence_id")),
-                "locus": _python_value(row.get("locus")),
-                "productive": _python_value(row.get("productive")),
-                "junction": _python_value(row.get("junction")),
-                "junction_aa": _python_value(row.get("junction_aa")),
-                "v_call": _python_value(row.get("v_call")),
-                "d_call": _python_value(row.get("d_call")),
-                "j_call": _python_value(row.get("j_call")),
-                "c_call": _python_value(row.get("c_call")),
-                "consensus_count": _python_value(row.get("read_count")),
-                "duplicate_count": _python_value(row.get("umi_count")),
-            }
+            chain = getattr(ir.io.AirrCell, "empty_chain_dict", dict)()
+            chain.update(
+                {
+                    "sequence_id": _python_value(row.get("sequence_id")),
+                    "locus": _python_value(row.get("locus")),
+                    "productive": _python_value(row.get("productive")),
+                    "junction": _python_value(row.get("junction")),
+                    "junction_aa": _python_value(row.get("junction_aa")),
+                    "v_call": _python_value(row.get("v_call")),
+                    "d_call": _python_value(row.get("d_call")),
+                    "j_call": _python_value(row.get("j_call")),
+                    "c_call": _python_value(row.get("c_call")),
+                    "consensus_count": _python_value(row.get("read_count")),
+                    "duplicate_count": _python_value(row.get("umi_count")),
+                }
+            )
+            # Preserve aligned AIRR fields needed by Scirpy mutation-burden analysis.
+            for field in cell_table.columns:
+                if (
+                    field in chain
+                    or field.startswith(("sequence_alignment", "germline_alignment"))
+                    or field.endswith(("_start", "_end"))
+                ):
+                    if field in {
+                        "sequence_id",
+                        "locus",
+                        "productive",
+                        "junction",
+                        "junction_aa",
+                        "v_call",
+                        "d_call",
+                        "j_call",
+                        "c_call",
+                    }:
+                        continue
+                    chain[field] = _python_value(row.get(field))
             cell.add_chain(chain)
         airr_cells.append(cell)
     return ir.io.from_airr_cells(airr_cells)
@@ -108,6 +138,20 @@ def scirpy_qc(data, **kwargs: Any):
     ir.pp.index_chains(data, **kwargs.pop("index_chains", {}))
     ir.tl.chain_qc(data, **kwargs)
     return data
+
+
+def _clonotype_key(sequence, metric, options, key_added=None):
+    configured = options.get("key_added")
+    if key_added is not None and configured is not None and configured != key_added:
+        raise ValueError("Conflicting key_added values for clonotype annotations")
+    resolved = key_added or configured
+    if resolved is None:
+        resolved = (
+            "clone_id" if sequence == "nt" and metric == "identity" else f"cc_{sequence}_{metric}"
+        )
+    if not isinstance(resolved, str) or not resolved:
+        raise ValueError("key_added must be a nonempty string")
+    return resolved
 
 
 def scirpy_define_clonotypes(
@@ -141,8 +185,8 @@ def scirpy_define_clonotypes(
     options.setdefault("dual_ir", "all")
     options.setdefault("receptor_arms", "all")
     strict = sequence == "nt" and metric == "identity"
-    key_added = key_added or ("clone_id" if strict else f"cc_{sequence}_{metric}")
-    options.setdefault("key_added", key_added)
+    key_added = _clonotype_key(sequence, metric, options, key_added)
+    options["key_added"] = key_added
     ir.pp.index_chains(data, airr_mod=airr_mod)
     ir.tl.chain_qc(data, airr_mod=airr_mod)
     ir.pp.ir_dist(
@@ -208,6 +252,7 @@ def run_scirpy_repertoire(
 ):
     """Run the recommended Scirpy QC-to-summary repertoire workflow."""
 
+    key_added = _clonotype_key(sequence, metric, clonotype_kwargs or {})
     scirpy_qc(data)
     scirpy_define_clonotypes(
         data,
@@ -216,8 +261,9 @@ def run_scirpy_repertoire(
         distance_kwargs=distance_kwargs,
         clonotype_kwargs=clonotype_kwargs,
         scope=scope,
+        key_added=key_added,
     )
-    return scirpy_summary(data, groupby=groupby)
+    return scirpy_summary(data, groupby=groupby, target_col=key_added)
 
 
 def plot_scirpy(data, kind: str, **kwargs: Any):

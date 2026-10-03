@@ -1,6 +1,5 @@
 """Tools: repertoire statistics, phenotype analysis and mature backend models."""
 
-from .advanced import pseudobulk, run_milo, run_scvi, scanpy_standard_workflow
 from .bulk import (
     bulk_summary,
     differential_clonotype_abundance,
@@ -14,8 +13,6 @@ from .bulk import (
 from .joint import (
     annotate_bulk_matches,
     clonal_expansion,
-    clone_expression,
-    clone_pseudobulk,
     clone_state_enrichment,
     clone_summary,
     match_bulk,
@@ -51,24 +48,30 @@ rarefaction = rarefaction_curve
 define_clonotypes = scirpy_define_clonotypes
 repertoire_summary = scirpy_summary
 scirpy_repertoire = run_scirpy_repertoire
-scanpy_workflow = scanpy_standard_workflow
-scvi = run_scvi
-milo = run_milo
+
+from .specificity import (
+    bcr_clonotypes,
+    clonotype_modularity,
+    clonotype_network,
+    mutational_load,
+    receptor_query,
+)
 
 __all__ = [
     "alpha_diversity",
     "annotate_bulk_matches",
     "annotate_clonality_proportion",
     "annotate_clonality_rank",
+    "bcr_clonotypes",
     "beta_diversity",
     "bulk_summary",
     "clonal_expansion",
     "clonality_proportion",
     "clonality_rank",
-    "clone_expression",
-    "clone_pseudobulk",
     "clone_state_enrichment",
     "clone_summary",
+    "clonotype_modularity",
+    "clonotype_network",
     "coverage_diversity",
     "define_clonotypes",
     "differential_abundance",
@@ -78,28 +81,23 @@ __all__ = [
     "hill_diversity",
     "longitudinal_expansion",
     "match_bulk",
-    "milo",
+    "mutational_load",
     "phenotype_composition",
     "phenotype_diversity",
     "phenotype_flow",
     "phenotypic_flux",
-    "pseudobulk",
     "public_overlap",
     "public_repertoire",
     "rank_abundance",
     "rarefaction",
     "rarefaction_curve",
+    "receptor_query",
     "repertoire_metrics",
     "repertoire_summary",
-    "run_milo",
     "run_scirpy_repertoire",
-    "run_scvi",
-    "scanpy_standard_workflow",
-    "scanpy_workflow",
     "scirpy_define_clonotypes",
     "scirpy_repertoire",
     "scirpy_summary",
-    "scvi",
     "segment_usage",
     "skbio_alpha_diversity",
     "skbio_beta_diversity",

@@ -24,11 +24,7 @@ def backend_status() -> dict[str, bool]:
 
     modules = {
         "scikit-bio": "skbio",
-        "scanpy": "scanpy",
         "scirpy": "scirpy",
-        "scvi-tools": "scvi",
-        "pertpy": "pertpy",
-        "decoupler": "decoupler",
         "pydeseq2": "pydeseq2",
     }
     return {name: find_spec(module) is not None for name, module in modules.items()}

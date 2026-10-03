@@ -185,20 +185,13 @@ def test_native_10x_reader_and_composite_ids(tmp_path):
     assert airr.obs["barcode"].item() == "AA-1"
 
 
-def test_joint_cellscope_aggregation_and_embedding(study):
-    cs = pytest.importorskip("cellscope")
-    pytest.importorskip("decoupler")
+def test_vdj_annotations_on_existing_embedding(study):
     import matplotlib
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     iu.tl.clonal_expansion(study)
-    pdata = iu.tl.clone_pseudobulk(study, min_cells=1, metadata_cols=["condition", "donor_id"])
-    assert (
-        np.asarray(pdata.X).sum()
-        == study.mod["gex"].layers["counts"][study.obs["has_airr"].to_numpy()].sum()
-    )
     study.mod["gex"].obsm["X_umap"] = np.random.default_rng(0).normal(size=(96, 2))
     before = study.mod["gex"].obs.columns.copy()
     assert iu.pl.clone_embedding(study) is not None
@@ -207,5 +200,4 @@ def test_joint_cellscope_aggregation_and_embedding(study):
     iu.tl.phenotype_flow(study, from_sample="s0", to_sample="s1")
     assert iu.pl.phenotype_flow(study) is not None
     assert iu.pl.phenotype_composition(study, sample_id="s0") is not None
-    assert cs.get.obs_df(study).shape[0] == 96
     plt.close("all")

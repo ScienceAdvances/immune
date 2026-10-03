@@ -26,8 +26,7 @@ Install only the mature backends required by a study.
 |---|---|---|
 | `bulk` | `pip install 'immune[bulk]'` | scikit-bio diversity and downsampling |
 | `differential` | `pip install 'immune[differential]'` | PyDESeq2 clonotype differential abundance |
-| `singlecell` | `pip install 'immune[singlecell]'` | AnnData, Scanpy, MuData and Scirpy |
-| `advanced` | `pip install 'immune[advanced]'` | scvi-tools, Pertpy Milo and decoupler |
+| `singlecell` | `pip install 'immune[singlecell]'` | AnnData, MuData and Scirpy |
 | `plot` | `pip install 'immune[plot]'` | Matplotlib and seaborn bulk plots |
 | `all` | `pip install 'immune[all]'` | All analysis families |
 
@@ -40,7 +39,7 @@ python -m pip install 'immune[bulk,differential,plot]'
 A joint scRNA-seq/TCR study can use:
 
 ```bash
-python -m pip install 'immune[bulk,singlecell,advanced,plot]'
+python -m pip install 'immune[bulk,singlecell,plot]'
 ```
 
 ## Check optional backends
@@ -53,3 +52,6 @@ iu.backend_status()
 
 Optional packages are imported only when their functions are called. A missing
 backend therefore does not prevent the base package from importing.
+
+RNA analysis is installed separately through cellscope. immune has no RNA or R
+analysis extra and no dependency on cellscope.

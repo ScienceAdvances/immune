@@ -13,7 +13,7 @@ class NamespaceTests(unittest.TestCase):
         self.assertIs(iu.tl.bulk_summary, iu.bulk_summary)
         self.assertIs(iu.tl.alpha_diversity, iu.skbio_alpha_diversity)
         self.assertIs(iu.pl.bulk_diversity, iu.plot_bulk_diversity)
-        self.assertEqual(iu.__version__, "0.5.0")
+        self.assertEqual(iu.__version__, "0.6.0")
 
     def test_single_cell_plot_wrappers_dispatch_to_scirpy(self) -> None:
         data = object()

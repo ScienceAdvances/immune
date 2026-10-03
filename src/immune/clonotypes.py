@@ -75,7 +75,9 @@ def add_clonotype_ids(
     definition = definition or CloneDefinition()
     validate_rearrangements(chains)
     result = chains.copy()
-    result[key_added] = result.apply(lambda row: _clone_key(row, definition), axis=1).astype("string")
+    result[key_added] = result.apply(lambda row: _clone_key(row, definition), axis=1).astype(
+        "string"
+    )
     result["clone_definition"] = definition.label
     return result
 
@@ -105,7 +107,10 @@ def clone_abundance(
 
     Cell-level tables are counted by unique ``cell_id``. Bulk and high-level
     clonotype tables use an explicit count column, or choose cell, UMI and read
-    counts in that order.
+    counts in that order. Repeated rows from the same source clonotype (or
+    sequence record when no source clonotype is supplied) count once per clone.
+    Distinct sources are summed. Rows without either identifier are independent
+    abundance records; callers must remove duplicate records before aggregation.
     """
 
     definition = definition or CloneDefinition()
@@ -151,12 +156,29 @@ def clone_abundance(
             unit = "cell"
         else:
             selected, unit = _choose_count_column(sample, count_col)
-            # A high-level paired clonotype has one row per chain. The selected
-            # definition normally filters to one locus; max avoids double
-            # counting duplicated rows carrying the same source abundance.
+            records = sample.copy()
+            # Namespace source IDs and distinguish anonymous rows from named
+            # records. Never deduplicate independent records by sequence alone.
+            source_ids = []
+            for position, (_, row) in enumerate(records.iterrows()):
+                source = "" if pd.isna(row["source"]) else str(row["source"])
+                for column in ("source_clonotype_id", "sequence_id"):
+                    value = row[column]
+                    if pd.notna(value) and str(value).strip():
+                        source_ids.append((source, column, str(value)))
+                        break
+                else:
+                    source_ids.append((source, "row", position))
+            records["_source_record"] = source_ids
+            per_source = records.groupby(["clone_id", "_source_record"], observed=True, sort=False)[
+                selected
+            ]
+            if per_source.nunique().gt(1).any():
+                raise ValueError("Conflicting counts for the same source record and clonotype")
             grouped_count = (
-                sample.groupby(sample_keys, observed=True)[selected]
-                .max()
+                per_source.first()
+                .groupby(level="clone_id", observed=True)
+                .sum()
                 .fillna(0)
                 .rename("count")
             )
@@ -175,7 +197,9 @@ def clone_abundance(
         out=np.zeros(len(result), dtype=float),
         where=totals.to_numpy() > 0,
     )
-    return result.sort_values(["sample_id", "count"], ascending=[True, False]).reset_index(drop=True)
+    return result.sort_values(["sample_id", "count"], ascending=[True, False]).reset_index(
+        drop=True
+    )
 
 
 def _source_ids(values: pd.Series) -> str:
@@ -227,8 +251,10 @@ def link_bulk_to_single_cell(
     sc = sc_counts.merge(sc_sources, on=["sample_id", "clone_id"], how="left").rename(
         columns={"sample_id": "sc_sample_id"}
     )
-    sc["n_sc_source_clonotypes"] = sc["sc_source_clonotype_ids"].fillna("").map(
-        lambda value: len([item for item in value.split(";") if item])
+    sc["n_sc_source_clonotypes"] = (
+        sc["sc_source_clonotype_ids"]
+        .fillna("")
+        .map(lambda value: len([item for item in value.split(";") if item]))
     )
 
     how = "left" if include_unmatched else "inner"

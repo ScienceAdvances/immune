@@ -1,7 +1,7 @@
-# Single-cell RNA and V(D)J
+# Single-cell V(D)J
 
-`immune` provides thin adapters around Scirpy and Scanpy rather than
-reimplementing their receptor and transcriptome algorithms.
+`immune` provides receptor adapters around Scirpy. RNA algorithms belong to
+cellscope; shared annotations and embeddings support receptor interpretation.
 
 ## Convert receptor chains to Scirpy
 
@@ -17,7 +17,10 @@ airr = iu.pp.to_scirpy(chains)
 
 All qualifying chains are retained. When the same barcode occurs in multiple
 samples, cell IDs become `sample_id:barcode`; otherwise the original barcode is
-preserved for direct transcriptome alignment.
+preserved for direct transcriptome alignment. Existing qualified `cell_id`
+values remain intact when an original `barcode` column is present. An explicit
+library identifier can qualify raw IDs. Final ID collisions raise an error;
+the converter never invents numeric suffixes that would break RNA alignment.
 
 ## Merge with gene expression
 
@@ -38,10 +41,13 @@ iu.pp.scirpy_qc(mdata)
 
 iu.tl.scirpy_define_clonotypes(
     mdata,
-    receptor_arms="all",
-    dual_ir="primary_only",
-    same_v_gene=False,
-    same_j_gene=False,
+    scope="donor_id",
+    clonotype_kwargs={
+        "receptor_arms": "all",
+        "dual_ir": "primary_only",
+        "same_v_gene": False,
+        "same_j_gene": False,
+    },
 )
 ```
 
@@ -68,52 +74,15 @@ iu.tl.scirpy_repertoire(mdata, groupby="sample_id")
 The decomposed QC, clonotyping and summary functions are preferred when a study
 must document or change scientific parameters.
 
-## Transcriptome preprocessing
+The combined workflow uses the output key from the selected sequence/metric
+or `clonotype_kwargs["key_added"]` for all subsequent summaries, including
+amino-acid runs. Choose `scope="donor_id"` explicitly for donor-restricted
+clonotypes; its compatibility default `scope=None` groups shared sequences
+across donors.
 
-```python
-iu.tl.scanpy_workflow(
-    adata,
-    layer="counts",
-    n_top_genes=3000,
-    n_neighbors=15,
-)
-```
+## Existing RNA annotations
 
-This calls a conventional Scanpy preprocessing/embedding sequence. For an
-established project, use the study's existing Scanpy workflow and pass the
-annotated object to the receptor integration steps.
-
-## scVI and neighborhood differential abundance
-
-```python
-model = iu.tl.scvi(
-    adata,
-    layer="counts",
-    batch_key="sample_id",
-)
-
-mdata_milo, milo = iu.tl.milo(
-    adata,
-    sample_col="sample_id",
-    design="~ condition",
-    neighbors_kwargs={"use_rep": "X_scVI"},
-)
-```
-
-The native scvi-tools model and Pertpy Milo objects are returned. Keep their
-version and fitted parameters in the study provenance.
-
-## Pseudobulk expression
-
-```python
-pseudobulk = iu.tl.pseudobulk(
-    adata,
-    sample_col="sample_id",
-    groups_col="cell_type",
-    layer="counts",
-)
-```
-
-Pseudobulk aggregation delegates to decoupler. Use sample-level replicates for
-downstream expression inference rather than treating cells as independent
-biological replicates.
+Prepare the RNA object with cellscope in application code, then merge it with
+AIRR data using `pp.merge_with_transcriptome`. See the RNA/VDJ guide. Receptor
+plots and modularity analysis may use an existing RNA embedding or graph;
+immune does not compute RNA preprocessing, embeddings, models or expression tests.

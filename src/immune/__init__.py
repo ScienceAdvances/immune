@@ -2,7 +2,6 @@
 
 from . import datasets, get, io, pl, pp, tl
 from ._optional import backend_status
-from .advanced import pseudobulk, run_milo, run_scvi, scanpy_standard_workflow
 from .bulk import (
     abundance_matrix,
     bulk_summary,
@@ -87,7 +86,6 @@ __all__ = [
     "plot_segment_usage",
     "plot_spectratype",
     "pp",
-    "pseudobulk",
     "public_overlap",
     "public_repertoire",
     "rank_abundance",
@@ -96,10 +94,7 @@ __all__ = [
     "read_airr",
     "read_mixcr",
     "repertoire_metrics",
-    "run_milo",
     "run_scirpy_repertoire",
-    "run_scvi",
-    "scanpy_standard_workflow",
     "scirpy_define_clonotypes",
     "scirpy_qc",
     "scirpy_summary",
@@ -113,4 +108,4 @@ __all__ = [
     "to_scirpy",
 ]
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"

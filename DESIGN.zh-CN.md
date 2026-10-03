@@ -18,9 +18,9 @@ immune 分析 bulk 与单细胞适应性免疫受体组库。当前重点是联�
 | immune | 受体链、克隆、免疫组库统计、克隆/表型关系、纵向追踪、bulk 匹配与克隆分组后的联合分析 |
 | Scirpy | AIRR 读取、链索引与质控、精确克隆型、受体相似性聚类及受体可视化 |
 
-immune 从原生数据对象读取 cellscope 的结果，并构造受体定义的细胞分组。可选依赖 `joint` 启用 cellscope 表达整合；cellscope 不依赖 immune，避免循环依赖。
+immune 从原生数据对象读取 cellscope 的结果，并构造受体定义的细胞分组。The application calls cellscope directly for RNA analysis; neither package depends on the other.
 
-Scirpy 已有的成熟算法通过其公共接口调用，不重新实现底层算法。已有 `immune.advanced` 中的通用 RNA 适配器保留兼容性；新流程应使用 cellscope 完成这些任务。
+Scirpy 已有的成熟算法通过其公共接口调用，不重新实现底层算法。Generic RNA adapters have been removed from immune; use cellscope directly.
 
 ## 3. 通用数据模型
 
@@ -125,16 +125,11 @@ import immune as iu
 | `tl.longitudinal_expansion(data, sample_metadata=...)` | 供体内基线/随访扩增检验，时间选择校正与全局 BH |
 | `tl.match_bulk(data, bulk_chains, sample_pairs=..., definition=...)` | 细胞/完整克隆/单链/bulk 关联表，保留计数单位与歧义 |
 | `tl.annotate_bulk_matches(data)` | 对唯一选定的比较结果生成逐细胞 bulk 注释 |
-| `tl.clone_pseudobulk(data, groupby="clonal_expansion", ...)` | 按受体分组调用 cellscope，聚合样本层面的 RNA counts |
-| `tl.clone_expression(data, method=..., design=..., contrast=..., ...)` | 受体分组内的条件差异表达；通过 cellscope 选择 PyDESeq2、pylimma 或 edgePython，返回结果表、pseudobulk 与模型 |
 
 原生表型结果保存在 `data.uns["immune"][key]["table"]`，`params` 记录分母及分析设置。已有表格型表型分析输入和纵向检验仍保留兼容性。原生辅助接口默认使用 `gex` 和 `airr`，必要时可显式指定模态。
 
-`tl.clone_expression` 在每个受体分组内分别比较条件。例如，它可以比较扩增组内治疗前后的表达，但不等同于直接比较扩增与非扩增细胞。
-
-若研究问题是“扩增组与非扩增组的表达差异”，应提取 `tl.clone_pseudobulk`，合并相应 profiles，并通过 `cellscope.tl.differential_expression` 提供合适的配对设计与 contrast。两类比较的统计问题不同。
-
-`method` 选择 cellscope 的样本层面后端，`de_kwargs` 配置额外参数；需要在同一环境安装 cellscope 对应的可选依赖组。结果记录实际使用的方法与后端，不固定标记为 PyDESeq2。
+RNA expression analysis uses cellscope directly on receptor-labeled observations.
+immune contains no expression aggregation or inference wrappers.
 
 ### 5.3 bulk 免疫组库统计
 
@@ -187,7 +182,7 @@ import immune as iu
 
 ## 7. 依赖、复用与兼容性
 
-immune 基础依赖为 NumPy、Pandas、SciPy。原生受体对象需要 `immune[singlecell]`；克隆相关 RNA 推断使用 `immune[joint]`。绘图及其他高级后端保持可选。
+immune base dependencies are NumPy, Pandas and SciPy. Native receptor objects use `immune[singlecell]`; RNA inference is installed separately through cellscope. Repertoire plotting and statistical backends remain optional.
 
 不启动 VDJtools 或 R 组库包命令。可借鉴 immunarch 的功能组织和分析思路，但执行流程统一为 Python。
 

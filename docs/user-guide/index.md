@@ -14,5 +14,6 @@ bulk-analysis
 single-cell
 integration
 rna-vdj
+best-practices
 plotting
 ```

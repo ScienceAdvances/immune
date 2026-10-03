@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "immune"
-version = "0.5.0"
+version = "0.6.0"
 description = "Bulk and single-cell immune receptor repertoire analysis"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,22 +17,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+best-practices = ["anndata>=0.10", "mudata>=0.3", "scirpy>=0.22"]
 bulk = ["scikit-bio>=0.7"]
 differential = ["pydeseq2>=0.5"]
-singlecell = ["anndata>=0.10", "scanpy>=1.10", "mudata>=0.3", "scirpy>=0.19"]
-joint = ["cellscope[differential]>=1.2.0", "decoupler>=2.0", "pydeseq2>=0.5",
-         "anndata>=0.10", "scanpy>=1.10", "mudata>=0.3", "scirpy>=0.19"]
-advanced = ["scvi-tools>=1.2", "pertpy>=1.0", "decoupler>=2.0"]
+singlecell = ["anndata>=0.10", "mudata>=0.3", "scirpy>=0.22"]
 all = [
-  "cellscope[de]>=1.2.0",
   "scikit-bio>=0.7",
   "anndata>=0.10",
-  "scanpy>=1.10",
   "mudata>=0.3",
-  "scirpy>=0.19",
-  "scvi-tools>=1.2",
-  "pertpy>=1.0",
-  "decoupler>=2.0",
+  "scirpy>=0.22",
   "pydeseq2>=0.5",
   "matplotlib>=3.8",
   "seaborn>=0.13",
